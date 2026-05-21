@@ -1,0 +1,13 @@
+TESI
+
+-Leggi articolo del prof (attenzione al modello usato)
+-Partire da incrocio a semafori semplice (poi eventualmente estendibile a sistema di semafori) 
+-Sistema a tempo discreto (istante di tempo = cambio colore semaforo)
+	---> prima senza feedback
+	---> poi con feedback (ottimizzato)
+-Simulazione con python del sistema (SUMO, sito che ha consigliato il prof per simulazione anche)
+(se ci riesci su python, fai anche grafici) (dati usa anche quelli del prof)
+-Cercare di modellarlo in un sistema lineare.
+
+(Per tesi vera e propria, inizia con far software/parte teorica)
+Dopo lettura articolo, ricontatta il prof.
