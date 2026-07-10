@@ -1,0 +1,14 @@
+<!--File per la configurazione delle strade-->
+<routes>
+    <vType id="auto" accel="2.6" decel="4.5" sigma="0.5" length="5" minGap="2.5" maxSpeed="13.89"/>
+
+    <route id="N_S" edges="Nord_in Sud_out"/>
+    <route id="S_N" edges="Sud_in Nord_out"/>
+    <route id="E_O" edges="Est_in Ovest_out"/>
+    <route id="O_E" edges="Ovest_in Est_out"/>
+
+    <flow id="flusso_NS" type="auto" route="N_S" begin="0" end="3600" period="3"/>
+    <flow id="flusso_SN" type="auto" route="S_N" begin="0" end="3600" period="3"/>
+    <flow id="flusso_EO" type="auto" route="E_O" begin="0" end="3600" period="5"/>
+    <flow id="flusso_OE" type="auto" route="O_E" begin="0" end="3600" period="5"/>
+</routes>
