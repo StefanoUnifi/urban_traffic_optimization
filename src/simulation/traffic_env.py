@@ -38,8 +38,8 @@ class TrafficSimulationEnv:
     def get_current_queues(self) -> List[float]:
         queues = []
         for lane in self.lanes_in:
-            halted_vehicles = traci.lane.getLastStepHaltingNumber(lane)
-            queues.append(float(halted_vehicles))
+            queue_length = traci.lane.getLastStepHaltingNumber(lane)
+            queues.append(queue_length)
         return queues
 
     def execute_traffic_cycle(self, green_times: List[float]):
