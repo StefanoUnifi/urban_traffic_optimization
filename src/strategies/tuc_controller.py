@@ -1,38 +1,37 @@
 #classe del controller TUC - Traffic-Responsive Urban Controller
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Union
 from .base_controller import BaseController
 
 class TUCController(BaseController):
     def __init__(self,
                  intersection_ids: List[str],
-                 K_matr: List[List[float]],
+                 K_matr: Union[List[List[float]], np.ndarray],
                  nominal_greens: Dict[str, List[float]],
                  min_greens: Dict[str, List[float]],
                  max_greens: Dict[str, List[float]]):
         '''
-        :param K_matr: matrice dei guadagni K
+        :param K_matr: matrice dei guadagni K (dimensioni = n_fasi * n_code)
         :param nominal_greens: dizionario dei tempi dei verdi predefiniti
         :param min_greens: dizionario dei tempi di verde minimi
         :param max_greens: dizionario dei tempi di verde massimi
         '''
         super().__init__(intersection_ids)
         self.K = np.array(K_matr) #conversione in versione numpy per velocizzare calcoli matriciali
-        self.nominal_greens = nominal_greens
-        self.min_greens = min_greens
-        self.max_greens = max_greens
+        self.nominal_greens = {k: np.array(v) for k, v in nominal_greens.items()}
+        self.min_greens = {k: np.array(v) for k, v in min_greens.items()}
+        self.max_greens = {k: np.array(v) for k, v in max_greens.items()}
 
 
-    def compute_green_times(self, global_traffic_state: List[float]) -> Dict[str, List[float]]:
+    def compute_green_times(self, traffic_state: Union[List[float], np.ndarray]) -> Dict[str, List[float]]:
         '''
         Per il calcolo dei verdi viene applicata la legge di controllo u(k) = u_nom + K * x(k)
-        :param global_traffic_state: vettore x(k), col numero di veicoli in tutte le code
+        :param traffic_state: vettore x(k), col numero di veicoli in tutte le code
         :return: dizionario con tempi di verdi ottimali per ogni incrocio
         '''
-        x = np.array(global_traffic_state)
+        x = np.array(traffic_state)
 
-        #vettore che contiene le variazioni dei tempi di verde per tutte le fasi di tutti gli incroci
-        #calcolo del delta con prodotto matriciale
+        #calcolo delle variazioni dei tempi di verde (delta_u = K * x)
         delta_u = np.dot(self.K, x)
 
         #vettore che contiene i valori dei verdi ottimali per ogni singolo incrocio
