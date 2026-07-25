@@ -2,13 +2,41 @@
 <routes>
     <vType id="auto" accel="2.6" decel="4.5" sigma="0.5" length="5" minGap="2.5" maxSpeed="13.89"/>
 
-    <route id="N_S" edges="Nord_in Sud_out"/>
-    <route id="S_N" edges="Sud_in Nord_out"/>
-    <route id="E_O" edges="Est_in Ovest_out"/>
-    <route id="O_E" edges="Ovest_in Est_out"/>
+    <!-- Definizione dei percorsi -->
+    <!-- Percorso da Nord-->
+    <flow id="flusso_N" type="auto" begin="0" end="10000" period="4">
+            <routeDistribution>
+                <route edges="N_S" probability="0.5"/>
+                <route edges="N_E" probability="0.25"/>
+                <route edges="N_O" probability="0.25"/>
+            </routeDistribution>
+    </flow>
 
-    <flow id="flusso_NS" type="auto" route="N_S" begin="0" end="10000" period="4"/>
-    <flow id="flusso_SN" type="auto" route="S_N" begin="0" end="10000" period="4"/>
-    <flow id="flusso_EO" type="auto" route="E_O" begin="0" end="10000" period="4"/>
-    <flow id="flusso_OE" type="auto" route="O_E" begin="0" end="10000" period="4"/>
+    <!-- Percorso da Sud-->
+    <flow id="flusso_S" type="auto" begin="0" end="10000" period="4">
+            <routeDistribution>
+                <route edges="S_N" probability="0.5"/>
+                <route edges="S_E" probability="0.25"/>
+                <route edges="S_O" probability="0.25"/>
+            </routeDistribution>
+    </flow>
+
+    <!-- Percorso da Est-->
+    <flow id="flusso_E" type="auto" begin="0" end="10000" period="4">
+            <routeDistribution>
+                <route edges="E_O" probability="0.5"/>
+                <route edges="E_N" probability="0.25"/>
+                <route edges="E_S" probability="0.25"/>
+            </routeDistribution>
+    </flow>
+
+    <!-- Percorso da Ovest-->
+    <flow id="flusso_O" type="auto" begin="0" end="10000" period="4">
+            <routeDistribution>
+                <route edges="O_E" probability="0.5"/>
+                <route edges="O_N" probability="0.25"/>
+                <route edges="O_S" probability="0.25"/>
+            </routeDistribution>
+    </flow>
+
 </routes>
