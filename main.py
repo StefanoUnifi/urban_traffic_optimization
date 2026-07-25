@@ -37,7 +37,7 @@ def main():
 
     # A seconda di quale controller usare, commenta/ decommenta la sezione corrispondente
 
-    '''
+
     # Configurazione controller TUC
     controller = TUCController(
         intersection_ids=[tls_id],
@@ -46,9 +46,8 @@ def main():
         min_greens=minimi,
         max_greens=massimi
     )
-   
 
-
+    '''
     # Configurazione controller DTUC
     controller = DTUCController(
         intersection_ids=[tls_id],
@@ -57,8 +56,8 @@ def main():
         min_greens=minimi,
         max_greens=massimi
     )
+
     
-'''
     # Configurazione controller D2TUC
     controller = D2TUCController(
         intersection_ids=[tls_id],
@@ -67,7 +66,7 @@ def main():
         min_greens=minimi,
         max_greens=massimi
     )
-
+    '''
     name_strat = f"{type(controller).__name__}"
     file_log_csv = f"risultati_{name_strat}.csv"
 
@@ -75,7 +74,7 @@ def main():
     print("Apertura connessione TraCI con SUMO...")
     env.start_simulation()
 
-    SIM_CYCLES = 100  # Eseguiamo la simulazione per 50 cicli semaforici completo
+    SIM_CYCLES = 50  # Eseguiamo la simulazione per 50 cicli semaforici completo
     log_data = []
 
     try:
@@ -128,7 +127,7 @@ def main():
         env.stop_simulation()
         print("Simulazione terminata.")
 
-        #TODO: fai parte per salvataggio dati su grafici
+    #TODO: fai parte per salvataggio dati su grafici + chiusura programma automatica
 
 if __name__ == "__main__":
     main()
