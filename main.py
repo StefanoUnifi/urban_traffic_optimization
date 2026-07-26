@@ -1,32 +1,42 @@
 import csv
 import os
+import numpy as np
 
 from src.strategies.tuc_controller import TUCController
 from src.strategies.dtuc_controller import DTUCController
 from src.strategies.d2tuc_controller import D2TUCController
 
 from src.simulation.traffic_env import TrafficSimulationEnv
+from src.utils.k_generator import calculate_k
 
 def main():
     tls_id = "J4"  #id incrocio semaforo
     corsie_ingresso = ["Nord_in_0", "Sud_in_0", "Est_in_0", "Ovest_in_0"] #lista corsie in ingresso al semaforo
 
     #Configurazione parametri temporali
-    nominali = {tls_id: [30.0, 30.0]}
+    nominali = {tls_id: [25.0, 25.0]}
     minimi = {tls_id: [10.0, 10.0]}
-    massimi = {tls_id: [60.0, 60.0]}
+    massimi = {tls_id: [45.0, 45.0]}
 
-    # Matrice per TUC
-    K_matrix = [
-        [0.4, 0.4, -0.3, -0.3],  # Impatto sulla Fase 1 (Nord-Sud)
-        [-0.3, -0.3, 0.4, 0.4]  # Impatto sulla Fase 2 (Est-Ovest)
+    # Flussi di saturazione per le corsie in ingresso (veicoli/secondo)
+    sat_flows = [0.8, 0.8, 0.8, 0.8]
+
+    phase_map = [
+        [1, 1, 0, 0],  #fase nord-sud
+        [0, 0, 1, 1],  #fase est-ovest
     ]
 
-    # Matrici DTUC/D2TUC
-    local_K_matricies = {tls_id: [
-        [0.4, 0.4, -0.3, -0.3],
-        [-0.3, -0.3, 0.4, 0.4]
-    ]}
+    # Calcolo di K con funzione apposta
+    q_weight = 1.0 #più aumenti, più dai importanza al recupero code
+    r_weight = 0.1 #più aumenti, meno cambi improvvisi di verde
+
+    K_matrix = calculate_k(sat_flows, phase_map, q_weight, r_weight)  #per TUC
+
+    local_K_matricies = {tls_id: K_matrix} #per DTUC/D2TUC
+
+    print("--- Matrice dei guadagni K calcolata via LQR ---")
+    print(np.round(K_matrix, 3))
+    print("-----------------------------------")
 
     # Inizializzazione ambiente di simulazione
     env = TrafficSimulationEnv(
@@ -37,7 +47,7 @@ def main():
 
     # A seconda di quale controller usare, commenta/ decommenta la sezione corrispondente
 
-
+    '''
     # Configurazione controller TUC
     controller = TUCController(
         intersection_ids=[tls_id],
@@ -46,8 +56,8 @@ def main():
         min_greens=minimi,
         max_greens=massimi
     )
-
     '''
+
     # Configurazione controller DTUC
     controller = DTUCController(
         intersection_ids=[tls_id],
@@ -57,7 +67,7 @@ def main():
         max_greens=massimi
     )
 
-    
+    '''
     # Configurazione controller D2TUC
     controller = D2TUCController(
         intersection_ids=[tls_id],
