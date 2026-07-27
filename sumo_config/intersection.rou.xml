@@ -45,36 +45,36 @@
     <!-- Input flusso da Nord sinistra-->
     <flow id="flusso_NO" type="auto" begin="0" end="10000" period="6">
             <routeDistribution>
-                <route edges="J8_nord_in J7_est_in" probability="0.33"/>
-                <route edges="J8_nord_in J5_sud_in" probability="0.34"/>
-                <route edges="J8_nord_in J0_ovest_in J2_ovest_in J10_ovest_in" probability="0.33"/>
+                <route edges="J4_nord_in J7_est_in" probability="0.33"/>
+                <route edges="J4_nord_in J8_nord_in" probability="0.34"/>
+                <route edges="J4_nord_in J0_ovest_in J2_ovest_in J10_ovest_in" probability="0.33"/>
             </routeDistribution>
     </flow>
 
     <!-- Input flusso da Nord destra-->
     <flow id="flusso_NE" type="auto" begin="0" end="10000" period="6">
             <routeDistribution>
-                <route edges="J11_nord_in J9_sud_in" probability="0.34"/>
-                <route edges="J11_nord_in J10_ovest_in" probability="0.33"/>
-                <route edges="J11_nord_in J0_est_in J4_est_in J7_est_in" probability="0.33"/>
+                <route edges="J2_nord_in J11_nord_in" probability="0.34"/>
+                <route edges="J2_nord_in J10_ovest_in" probability="0.33"/>
+                <route edges="J2_nord_in J0_est_in J4_est_in J7_est_in" probability="0.33"/>
             </routeDistribution>
     </flow>
 
     <!-- Input flusso da Sud sinistra-->
     <flow id="flusso_SO" type="auto" begin="0" end="10000" period="6">
             <routeDistribution>
-                <route edges="J5_sud_in J8_nord_in" probability="0.34"/>
-                <route edges="J5_sud_in J7_est_in" probability="0.33"/>
-                <route edges="J5_sud_in J0_ovest_in J2_ovest_in J10_ovest_in" probability="0.33"/>
+                <route edges="J4_sud_in J5_sud_in" probability="0.34"/>
+                <route edges="J4_sud_in J7_est_in" probability="0.33"/>
+                <route edges="J4_sud_in J0_ovest_in J2_ovest_in J10_ovest_in" probability="0.33"/>
             </routeDistribution>
     </flow>
 
     <!-- Input flusso da Sud destra-->
     <flow id="flusso_SE" type="auto" begin="0" end="10000" period="6">
             <routeDistribution>
-                <route edges="J9_sud_in J11_nord_in" probability="0.34"/>
-                <route edges="J9_sud_in J10_ovest_in" probability="0.33"/>
-                <route edges="J9_sud_in J0_est_in J4_est_in J7_est_in" probability="0.33"/>
+                <route edges="J2_sud_in J9_sud_in" probability="0.34"/>
+                <route edges="J2_sud_in J10_ovest_in" probability="0.33"/>
+                <route edges="J2_sud_in J0_est_in J4_est_in J7_est_in" probability="0.33"/>
             </routeDistribution>
     </flow>
 
