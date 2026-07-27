@@ -10,13 +10,17 @@ from src.simulation.traffic_env import TrafficSimulationEnv
 from src.utils.k_generator import calculate_k
 
 def main():
-    tls_id = "J4"  #id incrocio semaforo
-    corsie_ingresso = ["Nord_in_0", "Sud_in_0", "Est_in_0", "Ovest_in_0"] #lista corsie in ingresso al semaforo
+    int_ids = ["J0","J2","J4"]  #id incroci semafori
+    corsie_ingresso = {
+        "J0": ["J0_nord_in_0", "J0_sud_in_0", "J0_est_in_0", "J0_ovest_in_0"],
+        "J2": ["J2_nord_in_0", "J2_sud_in_0", "J2_est_in_0", "J2_ovest_in_0"],
+        "J4": ["J4_nord_in_0", "J4_sud_in_0", "J4_est_in_0", "J4_ovest_in_0"]
+    } #corsie in ingresso ai semafori
 
-    #Configurazione parametri temporali
-    nominali = {tls_id: [25.0, 25.0]}
-    minimi = {tls_id: [10.0, 10.0]}
-    massimi = {tls_id: [45.0, 45.0]}
+    #Configurazione parametri temporali per semafori
+    nominali = {i: [25.0, 25.0] for i in int_ids}
+    minimi = {i: [10.0, 10.0] for i in int_ids}
+    massimi = {i: [45.0, 45.0] for i in int_ids}
 
     # Flussi di saturazione per le corsie in ingresso (veicoli/secondo)
     sat_flows = [0.8, 0.8, 0.8, 0.8]
@@ -28,20 +32,20 @@ def main():
 
     # Calcolo di K con funzione apposta
     q_weight = 1.0 #più aumenti, più dai importanza al recupero code
-    r_weight = 0.1 #più aumenti, meno cambi improvvisi di verde
+    r_weight = 0.5 #più aumenti, meno cambi improvvisi di verde
 
-    K_matrix = calculate_k(sat_flows, phase_map, q_weight, r_weight)  #per TUC
+    global_K_matrix = calculate_k(sat_flows, phase_map, q_weight, r_weight)  #matrice globale per TUC
 
-    local_K_matricies = {tls_id: K_matrix} #per DTUC/D2TUC
+    local_K_matricies = {i: global_K_matrix for i in int_ids} #dizionario di matrici locali per DTUC/D2TUC
 
     print("--- Matrice dei guadagni K calcolata via LQR ---")
-    print(np.round(K_matrix, 3))
+    print(np.round(global_K_matrix, 3))
     print("-----------------------------------")
 
     # Inizializzazione ambiente di simulazione
     env = TrafficSimulationEnv(
         config_file="sumo_config/configuration.sumocfg",
-        tls_id=tls_id,
+        int_ids=int_ids,
         lanes_in=corsie_ingresso
     )
 
@@ -50,33 +54,33 @@ def main():
     '''
     # Configurazione controller TUC
     controller = TUCController(
-        intersection_ids=[tls_id],
-        K_matr=K_matrix,
+        intersection_ids=int_ids,
+        K_matr=global_K_matrix,
         nominal_greens=nominali,
         min_greens=minimi,
         max_greens=massimi
     )
     '''
-
+    '''
     # Configurazione controller DTUC
     controller = DTUCController(
-        intersection_ids=[tls_id],
+        intersection_ids=int_ids,
+        local_K_matr=local_K_matricies,
+        nominal_greens=nominali,
+        min_greens=minimi,
+        max_greens=massimi
+    )
+'''
+
+    # Configurazione controller D2TUC
+    controller = D2TUCController(
+        intersection_ids=int_ids,
         local_K_matr=local_K_matricies,
         nominal_greens=nominali,
         min_greens=minimi,
         max_greens=massimi
     )
 
-    '''
-    # Configurazione controller D2TUC
-    controller = D2TUCController(
-        intersection_ids=[tls_id],
-        local_K_matr=local_K_matricies,
-        nominal_greens=nominali,
-        min_greens=minimi,
-        max_greens=massimi
-    )
-    '''
     name_strat = f"{type(controller).__name__}"
     file_log_csv = f"risultati_{name_strat}.csv"
 
@@ -90,41 +94,36 @@ def main():
     try:
         for ciclo in range(SIM_CYCLES):
             # Estrazione code da SUMO
-            code_attuali = env.get_current_queues()
-            coda_media = sum(code_attuali) / len(code_attuali)
-            print(f"\n[Ciclo {ciclo}] Code rilevate [Nord, Sud, Est, Ovest]: {code_attuali}")
-
-            if isinstance(controller, TUCController):
-                input_traffico = code_attuali # caso TUC
-            else:
-                input_traffico = {tls_id: code_attuali} #caso DTUC/D2TUC
+            input_traffico = env.get_current_queues_all()
 
             # Calcolo verdi per controller
             verdi_ottimizzati = controller.compute_green_times(input_traffico)
-            verdi_incrocio = verdi_ottimizzati[tls_id]
-            print(f"[Ciclo {ciclo}] {type(controller).__name__} -> Verde N-S: {verdi_incrocio[0]:.1f}s | Verde E-O: {verdi_incrocio[1]:.1f}s")
+            print(f"\n[Ciclo {ciclo}] --- Risultati Controllo {name_strat} ---")
 
-            # Salvataggio dati per log
-            log_data.append({
-                "Ciclo": ciclo,
-                "Coda_Nord": code_attuali[0],
-                "Coda_Sud": code_attuali[1],
-                "Coda_Est": code_attuali[2],
-                "Coda_Ovest": code_attuali[3],
-                "Coda_media": coda_media,
-                "Verde_NS": verdi_incrocio[0],
-                "Verde_EO": verdi_incrocio[1]
-            })
+            row_log = {"Ciclo": ciclo}
+            for i in int_ids:
+                code_ids = input_traffico[i]
+                verdi_ids = verdi_ottimizzati[i]
+                print(
+                    f" > {i} | Code [Nord, Sud, Est, Ovest]: {code_ids} -> Verde N-S: {verdi_ids[0]:.1f}s | Verde E-O: {verdi_ids[1]:.1f}s")
 
-            # Esecuzione in SUMO
-            env.execute_traffic_cycle(verdi_incrocio[::-1])
+                # Salvataggio dati per il log
+                row_log[f"{i}_Coda_NS"] = code_ids[0] + code_ids[1]
+                row_log[f"{i}_Coda_EO"] = code_ids[2] + code_ids[3]
+                row_log[f"{i}_Verde_NS"] = verdi_ids[0]
+                row_log[f"{i}_Verde_EO"] = verdi_ids[1]
+
+            log_data.append(row_log)
+
+            # Esecuzione del ciclo in SUMO
+            env.execute_traffic_cycle_all(verdi_ottimizzati)
 
     except Exception as e:
         print(f"Errore intercettato: {e}")
     finally:
         # Salvataggio dati di log
         if log_data:
-            campi = ["Ciclo", "Coda_Nord", "Coda_Sud", "Coda_Est", "Coda_Ovest", "Coda_media", "Verde_NS", "Verde_EO"]
+            campi = list(log_data[0].keys())
             try:
                 with open(file_log_csv, 'w', newline='', encoding="utf-8") as f:
                     writer = csv.DictWriter(f, fieldnames=campi)
