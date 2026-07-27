@@ -1,5 +1,4 @@
 import csv
-import os
 import numpy as np
 
 from src.strategies.tuc_controller import TUCController
@@ -10,7 +9,7 @@ from src.simulation.traffic_env import TrafficSimulationEnv
 from src.utils.k_generator import calculate_k
 
 def main():
-    int_ids = ["J0","J2","J4"]  #id incroci semafori
+    int_ids = ["J0", "J2", "J4"]  #id incroci semafori
     corsie_ingresso = {
         "J0": ["J0_nord_in_0", "J0_sud_in_0", "J0_est_in_0", "J0_ovest_in_0"],
         "J2": ["J2_nord_in_0", "J2_sud_in_0", "J2_est_in_0", "J2_ovest_in_0"],
@@ -22,25 +21,73 @@ def main():
     minimi = {i: [10.0, 10.0] for i in int_ids}
     massimi = {i: [45.0, 45.0] for i in int_ids}
 
-    # Flussi di saturazione per le corsie in ingresso (veicoli/secondo)
-    sat_flows = [0.8, 0.8, 0.8, 0.8]
-
-    phase_map = [
-        [1, 1, 0, 0],  #fase nord-sud
-        [0, 0, 1, 1],  #fase est-ovest
-    ]
-
     # Calcolo di K con funzione apposta
     q_weight = 1.0 #più aumenti, più dai importanza al recupero code
-    r_weight = 0.5 #più aumenti, meno cambi improvvisi di verde
+    r_weight = 1.5 #più aumenti, meno cambi improvvisi di verde
 
-    global_K_matrix = calculate_k(sat_flows, phase_map, q_weight, r_weight)  #matrice globale per TUC
+    strat = "D2TUC"
 
-    local_K_matricies = {i: global_K_matrix for i in int_ids} #dizionario di matrici locali per DTUC/D2TUC
+    if strat == "TUC":
+        sat_flows = [0.8] * (4 * len(int_ids))
+        phase_map_single = np.array([[1, 1, 0, 0], [0, 0, 1, 1]])
+        phase_map_global = np.block([
+            [phase_map_single if i == j else np.zeros((2, 4)) for j in range(len(int_ids))]
+            for i in range(len(int_ids))
+        ])
 
-    print("--- Matrice dei guadagni K calcolata via LQR ---")
-    print(np.round(global_K_matrix, 3))
-    print("-----------------------------------")
+        global_K_matrix = calculate_k(sat_flows, phase_map_global, q_weight, r_weight)
+
+        controller = TUCController(
+            intersection_ids=int_ids,
+            K_matr=global_K_matrix,
+            nominal_greens=nominali,
+            min_greens=minimi,
+            max_greens=massimi
+        )
+
+    elif strat == "DTUC":
+        topologia = {
+            "J0": ["J2", "J4"],  # incrocio centrale
+            "J2": ["J0"],  # incrocio Est
+            "J4": ["J0"]  # incrocio Ovest
+        }
+
+        local_K_matrices = {}
+        for i in int_ids:
+            num_neighbors = len(topologia[i])
+            total_lanes = 4 * (1 + num_neighbors)  # 4 sue + 4 per ogni vicino
+
+            sat_flows_i = [0.8] * total_lanes
+
+            # Mappa delle fasi locale (applica i verdi solo alle 4 corsie locali dell'incrocio i)
+            phase_map_single = np.array([[1, 1, 0, 0], [0, 0, 1, 1]])
+            phase_map_i = np.hstack([phase_map_single, np.zeros((2, 4 * num_neighbors))])
+
+            local_K_matrices[i] = calculate_k(sat_flows_i, phase_map_i, q_weight, r_weight)
+
+        controller = DTUCController(
+            intersection_ids=int_ids,
+            local_K_matr=local_K_matrices,
+            nominal_greens=nominali,
+            min_greens=minimi,
+            max_greens=massimi,
+            network_topology=topologia
+        )
+
+    elif strat == "D2TUC":
+        sat_flows_local = [0.8, 0.8, 0.8, 0.8]
+        phase_map_local = [[1, 1, 0, 0], [0, 0, 1, 1]]
+        local_K_single = calculate_k(sat_flows_local, phase_map_local, q_weight, r_weight)
+
+        local_K_matrices = {i: local_K_single for i in int_ids}
+
+        controller = D2TUCController(
+            intersection_ids=int_ids,
+            local_K_matr=local_K_matrices,
+            nominal_greens=nominali,
+            min_greens=minimi,
+            max_greens=massimi
+        )
 
     # Inizializzazione ambiente di simulazione
     env = TrafficSimulationEnv(
@@ -49,39 +96,7 @@ def main():
         lanes_in=corsie_ingresso
     )
 
-    # A seconda di quale controller usare, commenta/ decommenta la sezione corrispondente
-
-    '''
-    # Configurazione controller TUC
-    controller = TUCController(
-        intersection_ids=int_ids,
-        K_matr=global_K_matrix,
-        nominal_greens=nominali,
-        min_greens=minimi,
-        max_greens=massimi
-    )
-    '''
-    '''
-    # Configurazione controller DTUC
-    controller = DTUCController(
-        intersection_ids=int_ids,
-        local_K_matr=local_K_matricies,
-        nominal_greens=nominali,
-        min_greens=minimi,
-        max_greens=massimi
-    )
-'''
-
-    # Configurazione controller D2TUC
-    controller = D2TUCController(
-        intersection_ids=int_ids,
-        local_K_matr=local_K_matricies,
-        nominal_greens=nominali,
-        min_greens=minimi,
-        max_greens=massimi
-    )
-
-    name_strat = f"{type(controller).__name__}"
+    name_strat = type(controller).__name__
     file_log_csv = f"risultati_{name_strat}.csv"
 
     # Inzio loop di Simulazione

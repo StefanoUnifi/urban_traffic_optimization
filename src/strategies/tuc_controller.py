@@ -23,16 +23,19 @@ class TUCController(BaseController):
         self.max_greens = {k: np.array(v) for k, v in max_greens.items()}
 
 
-    def compute_green_times(self, traffic_state: Union[List[float], np.ndarray]) -> Dict[str, List[float]]:
+    def compute_green_times(self, traffic_state: Union[Dict[str, List[float]], List[float], np.ndarray]) -> Dict[str, List[float]]:
         '''
         Per il calcolo dei verdi viene applicata la legge di controllo u(k) = u_nom + K * x(k)
         :param traffic_state: vettore x(k), col numero di veicoli in tutte le code
         :return: dizionario con tempi di verdi ottimali per ogni incrocio
         '''
-        x = np.array(traffic_state)
+        if isinstance(traffic_state, dict):
+            x = np.concatenate([traffic_state[i] for i in self.intersection_ids])
+        else:
+            x = np.array(traffic_state)
 
         #calcolo delle variazioni dei tempi di verde (delta_u = K * x)
-        delta_u = np.dot(self.K, x)
+        delta_u = -np.dot(self.K, x)
 
         #vettore che contiene i valori dei verdi ottimali per ogni singolo incrocio
         optimal_greens = {}
@@ -47,11 +50,11 @@ class TUCController(BaseController):
             i += num_phase
 
             #legge di controllo per u(k) [= u_calculated]
-            u_calculated = np.array(self.nominal_greens[int_id]) + int_delta
+            u_calculated = self.nominal_greens[int_id] + int_delta
 
             #ricavo dei valori minimi/massimi di verde per l'incrocio e 'limito' i valori calcolati
-            u_min = np.array(self.min_greens[int_id])
-            u_max = np.array(self.max_greens[int_id])
+            u_min = self.min_greens[int_id]
+            u_max = self.max_greens[int_id]
             u_clipped = np.clip(u_calculated, u_min, u_max)
 
             optimal_greens[int_id] = u_clipped.tolist()

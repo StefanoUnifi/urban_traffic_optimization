@@ -5,7 +5,8 @@ def calculate_k(
         saturation_flows: list[float],
         phase_mapping: list[list[int]],
         q_weight: float,
-        r_weight: float
+        r_weight: float,
+        leakage_factor: float = 0.98  # fattore di decadimento (gamma < 1)
 ) -> np.ndarray:
     """
     Calcola la matrice dei guadagni K per un incrocio con LQR
@@ -13,6 +14,7 @@ def calculate_k(
     :param phase_mapping: Matrice binaria dove le righe indicano la fase semaforica e le colonne le corsie abilitate (1=attiva, 0=non attiva)
     :param q_weight: Peso della penalizzazione delle code nel costo LQR (Q = q_weight * I)
     :param r_weight: Peso della penalizzazione sulla variazione di verde (R = r_weight * I)
+    :param leakage_factor: Parametro di stabilità dinamica (deve essere < 1.0)
     :return: matrice di guadagno K (di dimensioni = num_fasi * num_corsie)
     """
 
@@ -29,8 +31,8 @@ def calculate_k(
             if P[i][j] == 1:
                 B[j, i] = -S[j]
 
-    #Calcolo matrice di stato A
-    A = np.eye(num_lanes)
+    #Calcolo matrice di stato A (leakage_factor < 1 rende il sistema stabilizzabile per Riccati)
+    A = np.eye(num_lanes) * leakage_factor
 
     #Calcolo matrici di peso Q (stato) e R (controllo)
     Q = np.eye(num_lanes) * q_weight

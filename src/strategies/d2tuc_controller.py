@@ -28,14 +28,14 @@ class D2TUCController(BaseController):
             x_local = np.asarray(traffic_state[int_id])
             K_i = np.array(self.local_K[int_id])
 
-            #calcolo del delta_u locale, includendo lo stato dei vicini [delta_u_i = K_i * x_i]
-            delta_u_local = np.dot(K_i, x_local)
+            #calcolo del delta_u locale [delta_u_i = K_i * x_i]
+            delta_u_local = -np.dot(K_i, x_local)
 
             #applico la legge di controllo per il singolo incrocio
             u_calculated = self.nominal_greens[int_id] + delta_u_local
 
-            u_min = np.array(self.min_greens[int_id])
-            u_max = np.array(self.max_greens[int_id])
+            u_min = self.min_greens[int_id]
+            u_max = self.max_greens[int_id]
             u_clipped = np.clip(u_calculated, u_min, u_max)
             optimal_greens[int_id] = u_clipped.tolist()
 

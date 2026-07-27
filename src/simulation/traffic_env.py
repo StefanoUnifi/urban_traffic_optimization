@@ -12,7 +12,7 @@ else:
     sys.exit("Please declare environment variable 'SUMO_HOME'")
 
 class TrafficSimulationEnv:
-    def __init__(self, config_file: str, int_ids: Union[str, List[str]], lanes_in: Union[List[str], Dict[str, List[str]]], yellow_duration: float = 3.0):
+    def __init__(self, config_file: str, int_ids: Union[str, List[str]], lanes_in: Union[List[str], Dict[str, List[str]]], yellow_duration: float = 5.0):
         '''
         :param config_file: percorso file configuration.sumocfg
         :param int_ids: lista degli ID dei semafori da controllare

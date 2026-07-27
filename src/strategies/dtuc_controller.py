@@ -34,10 +34,9 @@ class DTUCController(BaseController):
             #recupero stato del singolo incrocio
             x_local = np.asarray(traffic_state[int_id])
 
-            neighbors = self.network_topology.get(int_id, [])
-            #recupero info da vicini (se ci sono)
+            neighbors = sorted(self.network_topology.get(int_id, []))  # sorted() per ordine alfabetico
             if neighbors:
-                neighbor_states = [np.asarray(traffic_state[n_id]) for n_id in neighbors]
+                neighbor_states = [np.asarray(traffic_state[n_id]) for n_id in neighbors if n_id in traffic_state]
                 x_input = np.concatenate([x_local] + neighbor_states)
             else:
                 x_input = x_local
@@ -45,7 +44,7 @@ class DTUCController(BaseController):
             K_i = self.local_K[int_id]
 
             #calcolo del delta_u locale [delta_u_i = K_i * x_i]
-            delta_u_local = np.dot(K_i, x_input)
+            delta_u_local = -np.dot(K_i, x_input)
 
             #applico la legge di controllo per il singolo incrocio: u_i = u_N_i + delta_u_i
             u_calculated = self.nominal_greens[int_id] + delta_u_local
