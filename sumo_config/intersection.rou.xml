@@ -1,41 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--File per la configurazione delle strade e veicoli-->
 <routes>
     <vType id="auto" accel="2.6" decel="4.5" sigma="0.5" length="5" minGap="2.5" maxSpeed="13.89"/>
 
     <!-- Definizione dei percorsi -->
     <!-- Percorso da Nord-->
-    <flow id="flusso_N" type="auto" begin="0" end="10000" period="4">
+    <flow id="flusso_N" type="auto" begin="0" end="10000" period="7">
             <routeDistribution>
-                <route edges="Nord_in Sud_out" probability="0.5"/>
-                <route edges="Nord_in Est_out" probability="0.25"/>
-                <route edges="Nord_in Ovest_out" probability="0.25"/>
+                <route edges="J0_nord_in J3_nord_in" probability="0.5"/>
+                <route edges="J0_nord_in J4_est_in J7_est_in" probability="0.25"/>
+                <route edges="J0_nord_in J2_ovest_in J10_ovest_in" probability="0.25"/>
             </routeDistribution>
     </flow>
 
     <!-- Percorso da Sud-->
-    <flow id="flusso_S" type="auto" begin="0" end="10000" period="4">
+    <flow id="flusso_S" type="auto" begin="0" end="10000" period="7">
             <routeDistribution>
-                <route edges="Sud_in Nord_out" probability="0.5"/>
-                <route edges="Sud_in Est_out" probability="0.25"/>
-                <route edges="Sud_in Ovest_out" probability="0.25"/>
+                <route edges="J0_sud_in J1_sud_in" probability="0.5"/>
+                <route edges="J0_sud_in J4_est_in J7_est_in" probability="0.25"/>
+                <route edges="J0_sud_in J2_ovest_in J10_ovest_in" probability="0.25"/>
             </routeDistribution>
     </flow>
 
     <!-- Percorso da Est-->
-    <flow id="flusso_E" type="auto" begin="0" end="10000" period="4">
+    <flow id="flusso_E" type="auto" begin="0" end="10000" period="7">
             <routeDistribution>
-                <route edges="Est_in Ovest_out" probability="0.5"/>
-                <route edges="Est_in Nord_out" probability="0.25"/>
-                <route edges="Est_in Sud_out" probability="0.25"/>
+                <route edges="J2_est_in J0_est_in J4_est_in J7_est_in" probability="0.4"/>
+                <route edges="J2_est_in J9_sud_in" probability="0.2"/>
+                <route edges="J2_est_in J11_nord_in" probability="0.2"/>
+                <route edges="J2_est_in J0_est_in J3_nord_in" probability="0.2"/>
             </routeDistribution>
     </flow>
 
     <!-- Percorso da Ovest-->
-    <flow id="flusso_O" type="auto" begin="0" end="10000" period="4">
+    <flow id="flusso_O" type="auto" begin="0" end="10000" period="7">
             <routeDistribution>
-                <route edges="Ovest_in Est_out" probability="0.5"/>
-                <route edges="Ovest_in Nord_out" probability="0.25"/>
-                <route edges="Ovest_in Sud_out" probability="0.25"/>
+                <route edges="J4_ovest_in J0_ovest_in J2_ovest_in J10_ovest_in" probability="0.4"/>
+                <route edges="J4_ovest_in J5_sud_in" probability="0.2"/>
+                <route edges="J4_ovest_in J8_nord_in" probability="0.2"/>
+                <route edges="J4_ovest_in J0_ovest_in J1_sud_in" probability="0.2"/>
             </routeDistribution>
     </flow>
 
