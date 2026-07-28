@@ -18,12 +18,12 @@ def main():
 
     #Configurazione parametri temporali per semafori
     nominali = {i: [25.0, 25.0] for i in int_ids}
-    minimi = {i: [10.0, 10.0] for i in int_ids}
+    minimi = {i: [6.0, 6.0] for i in int_ids}
     massimi = {i: [45.0, 45.0] for i in int_ids}
 
     # Calcolo di K con funzione apposta
     q_weight = 1.0 #più aumenti, più dai importanza al recupero code
-    r_weight = 1.5 #più aumenti, meno cambi improvvisi di verde
+    r_weight = 1.2 #più aumenti, meno cambi improvvisi di verde
 
     strat = "D2TUC"
 
@@ -151,7 +151,7 @@ def main():
         env.stop_simulation()
         print("Simulazione terminata.")
 
-    #TODO: fai parte per salvataggio dati su grafici + chiusura programma automatica
+    #TODO: fai parte per salvataggio dati su grafici
 
 if __name__ == "__main__":
     main()
