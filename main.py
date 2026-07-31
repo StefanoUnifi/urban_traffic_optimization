@@ -25,13 +25,13 @@ def main():
     massimi = {i: [45.0, 45.0] for i in int_ids}
 
     # Calcolo di K con funzione apposta
-    q_weight = 1.0 #più aumenti, più dai importanza al recupero code
-    r_weight = 1.2 #più aumenti, meno cambi improvvisi di verde
+    q_weight = 10.0 #più aumenti, più dai importanza al recupero code
+    r_weight = 0.1 #più aumenti, meno cambi improvvisi di verde
 
-    strat = "TUC"
+    strat = "D2TUC"
 
     if strat == "TUC":
-        sat_flows = [0.8] * (4 * len(int_ids))
+        sat_flows = [0.4] * (4 * len(int_ids))
         phase_map_single = np.array([[1, 1, 0, 0], [0, 0, 1, 1]])
         phase_map_global = np.block([
             [phase_map_single if i == j else np.zeros((2, 4)) for j in range(len(int_ids))]
@@ -60,7 +60,7 @@ def main():
             num_neighbors = len(topologia[i])
             total_lanes = 4 * (1 + num_neighbors)  # 4 sue + 4 per ogni vicino
 
-            sat_flows_i = [0.8] * total_lanes
+            sat_flows_i = [0.4] * total_lanes
 
             # Mappa delle fasi locale (applica i verdi solo alle 4 corsie locali dell'incrocio i)
             phase_map_single = np.array([[1, 1, 0, 0], [0, 0, 1, 1]])
@@ -78,7 +78,7 @@ def main():
         )
 
     elif strat == "D2TUC":
-        sat_flows_local = [0.8, 0.8, 0.8, 0.8]
+        sat_flows_local = [0.4, 0.4, 0.4, 0.4]
         phase_map_local = [[1, 1, 0, 0], [0, 0, 1, 1]]
         local_K_single = calculate_k(sat_flows_local, phase_map_local, q_weight, r_weight)
 
@@ -106,7 +106,7 @@ def main():
     print("Apertura connessione TraCI con SUMO...")
     env.start_simulation()
 
-    SIM_CYCLES = 100  # Eseguiamo la simulazione per 100 cicli semaforici completo
+    SIM_CYCLES = 150  # Eseguiamo la simulazione per 100 cicli semaforici completo
     log_data = []
 
     try:
