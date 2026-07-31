@@ -2,6 +2,7 @@
 .venv
 .idea
 Articolo per tesi.pdf
-risultati_TUCController.csv
-risultati_DTUCController.csv
-risultati_D2TUCController.csv
+risultati_TUC.csv
+risultati_DTUC.csv
+risultati_D2TUC.csv
+.results

@@ -1,5 +1,7 @@
 import csv
 import numpy as np
+import pandas as pd
+import os
 
 from src.strategies.tuc_controller import TUCController
 from src.strategies.dtuc_controller import DTUCController
@@ -7,6 +9,7 @@ from src.strategies.d2tuc_controller import D2TUCController
 
 from src.simulation.traffic_env import TrafficSimulationEnv
 from src.utils.k_generator import calculate_k
+from src.utils.plot_generator import PlotGenerator
 
 def main():
     int_ids = ["J0", "J2", "J4"]  #id incroci semafori
@@ -25,7 +28,7 @@ def main():
     q_weight = 1.0 #più aumenti, più dai importanza al recupero code
     r_weight = 1.2 #più aumenti, meno cambi improvvisi di verde
 
-    strat = "D2TUC"
+    strat = "TUC"
 
     if strat == "TUC":
         sat_flows = [0.8] * (4 * len(int_ids))
@@ -96,14 +99,14 @@ def main():
         lanes_in=corsie_ingresso
     )
 
-    name_strat = type(controller).__name__
+    name_strat = strat
     file_log_csv = f"risultati_{name_strat}.csv"
 
     # Inzio loop di Simulazione
     print("Apertura connessione TraCI con SUMO...")
     env.start_simulation()
 
-    SIM_CYCLES = 50  # Eseguiamo la simulazione per 50 cicli semaforici completo
+    SIM_CYCLES = 100  # Eseguiamo la simulazione per 100 cicli semaforici completo
     log_data = []
 
     try:
@@ -115,10 +118,16 @@ def main():
             verdi_ottimizzati = controller.compute_green_times(input_traffico)
             print(f"\n[Ciclo {ciclo}] --- Risultati Controllo {name_strat} ---")
 
-            row_log = {"Ciclo": ciclo}
+            row_log = {"cycle": ciclo}
+            coda_tot_ciclo = 0
+
             for i in int_ids:
                 code_ids = input_traffico[i]
                 verdi_ids = verdi_ottimizzati[i]
+
+                coda_nodo = sum(code_ids)
+                coda_tot_ciclo += coda_nodo
+
                 print(
                     f" > {i} | Code [Nord, Sud, Est, Ovest]: {code_ids} -> Verde N-S: {verdi_ids[0]:.1f}s | Verde E-O: {verdi_ids[1]:.1f}s")
 
@@ -128,6 +137,7 @@ def main():
                 row_log[f"{i}_Verde_NS"] = verdi_ids[0]
                 row_log[f"{i}_Verde_EO"] = verdi_ids[1]
 
+            row_log["total_net_queue"] = coda_tot_ciclo
             log_data.append(row_log)
 
             # Esecuzione del ciclo in SUMO
@@ -151,7 +161,20 @@ def main():
         env.stop_simulation()
         print("Simulazione terminata.")
 
-    #TODO: fai parte per salvataggio dati su grafici
+    #generazione grafici
+    print("\nGenerazione grafici...")
+    plotter = PlotGenerator()
+
+    strat_dataframes = {}
+    for s in ["TUC", "DTUC", "D2TUC"]:
+        frame_name = f"risultati_{s}.csv"
+        if os.path.exists(frame_name):
+            strat_dataframes[s] = pd.read_csv(frame_name)
+
+    if strat_dataframes:
+        plotter.plot_net_queues(strat_dataframes)
+        plotter.plot_green_times(strat_dataframes)
+        plotter.plot_mean_max_bar_chart(strat_dataframes)
 
 if __name__ == "__main__":
     main()
